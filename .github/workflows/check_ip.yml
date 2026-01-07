@@ -1,0 +1,10 @@
+name: Check Runner IP
+on: 
+  workflow_dispatch: # This allows you to click a button to run it manually
+
+jobs:
+  get-ip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Public IP
+        run: curl https://api.ipify.org
