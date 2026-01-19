@@ -16,3 +16,4 @@ with SB(uc=True,
 
     html = sb.get_page_source()
     print("HTML Length:", len(html))
+    print(html[0:2000])
