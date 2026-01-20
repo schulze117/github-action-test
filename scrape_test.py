@@ -16,7 +16,7 @@ with SB(uc=True,
     # print("IP:", html)
                 
     url = "https://www.immowelt.de/expose/f6dd6b66-3ec3-4682-80f8-25533496f226"
-    url = "https://www.immobilienscout24.de/expose/165110040#/"
+    # url = "https://www.immobilienscout24.de/expose/165110040#/"
     sb.activate_cdp_mode(url)
 
     sb.sleep(6)
