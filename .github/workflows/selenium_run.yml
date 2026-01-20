@@ -1,4 +1,4 @@
-name: Run Selenium Scraper
+name: Run Selenium Scraper (Windows)
 on: 
   workflow_dispatch: # Manual trigger
 
@@ -6,7 +6,7 @@ jobs:
   scrape:
     env:
       PY_COLORS: "1"
-    runs-on: ubuntu-latest
+    runs-on: windows-latest  # <--- CHANGED TO WINDOWS
 
     steps:
       - name: Checkout code
@@ -28,6 +28,5 @@ jobs:
           seleniumbase install chromedriver
 
       - name: Run Scraper
-        run: |
-          sudo apt-get install -y xvfb
-          xvfb-run python scrape_test.py
+        # No 'xvfb' needed on Windows. Just run python.
+        run: python scrape_test.py
