@@ -4,7 +4,7 @@ with SB(uc=True,
         proxy="http://34.141.0.230:8888", 
         # xvfb=True,
         headless=False,
-        locale="en", 
+        locale="de", 
         incognito=True, 
         block_images=True,
         ) as sb:
