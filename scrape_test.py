@@ -1,7 +1,7 @@
 from seleniumbase import SB
 
 with SB(uc=True, 
-        proxy="http://10.156.0.22:8888", 
+        proxy="http://34.141.0.230:8888", 
         # xvfb=True,
         headless=False,
         locale="en", 
@@ -9,7 +9,7 @@ with SB(uc=True,
         block_images=True,
         ) as sb:
 
-    url = "https://api.ipify.org"
+    url = "https://api.ipify.org/"
     sb.activate_cdp_mode(url)
     sb.sleep(2)
 
