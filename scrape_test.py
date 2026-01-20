@@ -1,7 +1,7 @@
 from seleniumbase import SB
 
 with SB(uc=True, 
-        proxy="http://34.107.127.238:8888", 
+        # proxy="http://34.107.127.238:8888", 
         xvfb=True,
         headless=False,
         locale="de", 
