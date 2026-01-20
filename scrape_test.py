@@ -1,10 +1,10 @@
 from seleniumbase import SB
 
 with SB(uc=True, 
-        # proxy="http://34.107.127.238:8888", 
-        xvfb=True,
+        proxy="http://34.107.127.238:8888", 
+        # xvfb=True,
         headless=False,
-        locale="de", 
+        # locale="de", 
         incognito=True, 
         block_images=True,
         ) as sb:
