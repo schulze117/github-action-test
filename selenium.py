@@ -3,6 +3,7 @@ from seleniumbase import SB
 
 def run_scraper():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--url", type=str, default="https://api.ipify.org/")
     parser.add_argument("--proxy", type=str, default=None)
     parser.add_argument("--headless", action="store_true")
     parser.add_argument("--incognito", action="store_true")
@@ -11,7 +12,7 @@ def run_scraper():
     parser.add_argument("--xvfb", action="store_true")
     args = parser.parse_args()
 
-    # Build settings dictionary (Only include if True or provided)
+    # Dynamic settings dictionary
     sb_settings = {"uc": True}
     if args.proxy: sb_settings["proxy"] = args.proxy
     if args.headless: sb_settings["headless"] = True
@@ -21,16 +22,22 @@ def run_scraper():
     if args.xvfb: sb_settings["xvfb"] = True
 
     with SB(**sb_settings) as sb:
-        url = "https://www.immowelt.de/expose/f6dd6b66-3ec3-4682-80f8-25533496f226"
+        print(f"Target URL: {args.url}")
         
-        # Use UC Mode + CDP Mode for high-security sites
-        sb.activate_cdp_mode(url)
+        # Open URL with CDP Mode
+        sb.activate_cdp_mode(args.url)
         sb.sleep(10)
 
         html = sb.get_page_source()
-        print(f"--- Scraping Complete ---")
-        print(f"HTML Length: {len(html)}")
-        print(f"Snippet: {html[0:500]}")
+        
+        print("-" * 30)
+        if "ipify" in args.url:
+            # Clean output for IP check
+            print(f"Detected IP: {sb.get_text('body')}")
+        else:
+            print(f"HTML Length: {len(html)}")
+            print(f"Snippet: {html[0:1000]}")
+        print("-" * 30)
 
 if __name__ == "__main__":
     run_scraper()
