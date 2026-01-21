@@ -2,9 +2,9 @@ from seleniumbase import SB
 
 with SB(uc=True, 
         proxy="http://34.159.220.116:8888", 
-        xvfb=True,
+        # xvfb=True,
         headless=False,
-        locale="de", 
+        # locale="de", 
         incognito=True, 
         block_images=True,
         ) as sb:
