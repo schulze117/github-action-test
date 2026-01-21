@@ -1,0 +1,64 @@
+name: Selenium Scraper (Advanced)
+on:
+  workflow_dispatch:
+    inputs:
+      proxy:
+        description: 'Proxy URL (e.g. http://ip:port). Leave empty for none.'
+        required: false
+        default: ''
+      headless:
+        description: 'Run in Headless Mode'
+        type: boolean
+        default: false
+      incognito:
+        description: 'Run in Incognito'
+        type: boolean
+        default: true
+      block_images:
+        description: 'Block Images'
+        type: boolean
+        default: true
+      ad_block:
+        description: 'Enable Ad Block'
+        type: boolean
+        default: true
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set Locale to German
+        run: |
+          sudo apt-get install tzdata locales -y && sudo locale-gen de_DE.UTF-8
+          sudo localectl set-locale LANG="de_DE.UTF-8"
+          export LANG="de_DE.UTF-8"
+
+      - name: Install dependencies
+        run: |
+          pip install seleniumbase
+          sudo apt-get install -y google-chrome-stable xvfb
+
+      - name: Install drivers
+        run: |
+          seleniumbase install chromedriver
+          seleniumbase install uc_driver
+
+      - name: Run Scraper
+        run: |
+          # Construct the command based on inputs
+          COMMAND="python selenium.py --xvfb"
+          if [ "${{ github.event.inputs.proxy }}" != "" ]; then COMMAND="$COMMAND --proxy ${{ github.event.inputs.proxy }}"; fi
+          if [ "${{ github.event.inputs.headless }}" == "true" ]; then COMMAND="$COMMAND --headless"; fi
+          if [ "${{ github.event.inputs.incognito }}" == "true" ]; then COMMAND="$COMMAND --incognito"; fi
+          if [ "${{ github.event.inputs.block_images }}" == "true" ]; then COMMAND="$COMMAND --block-images"; fi
+          if [ "${{ github.event.inputs.ad_block }}" == "true" ]; then COMMAND="$COMMAND --ad-block"; fi
+          
+          # Execute
+          $COMMAND
