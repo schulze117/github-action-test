@@ -5,38 +5,43 @@ def run_scraper():
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", type=str, default="https://api.ipify.org/")
     parser.add_argument("--proxy", type=str, default=None)
-    parser.add_argument("--headless", action="store_true")
-    parser.add_argument("--incognito", action="store_true")
-    parser.add_argument("--block-images", action="store_true")
-    parser.add_argument("--ad-block", action="store_true")
-    parser.add_argument("--xvfb", action="store_true")
+    # Using type=str to handle "true"/"false"/None from the workflow
+    parser.add_argument("--headless", type=str, default=None)
+    parser.add_argument("--incognito", type=str, default=None)
+    parser.add_argument("--block-images", type=str, default=None)
+    parser.add_argument("--ad-block", type=str, default=None)
+    parser.add_argument("--xvfb", type=str, default=None)
     args = parser.parse_args()
 
-    # Dynamic settings dictionary
+    # uc=True is our only hardcoded default
     sb_settings = {"uc": True}
-    if args.proxy: sb_settings["proxy"] = args.proxy
-    if args.headless: sb_settings["headless"] = True
-    if args.incognito: sb_settings["incognito"] = True
-    if args.block_images: sb_settings["block_images"] = True
-    if args.ad_block: sb_settings["ad_block"] = True
-    if args.xvfb: sb_settings["xvfb"] = True
+
+    # Helper to only add settings if they are explicitly set
+    def add_if_not_none(key, value, is_bool=False):
+        if value is not None and value != "":
+            if is_bool:
+                sb_settings[key] = str(value).lower() == "true"
+            else:
+                sb_settings[key] = value
+
+    add_if_not_none("proxy", args.proxy)
+    add_if_not_none("headless", args.headless, is_bool=True)
+    add_if_not_none("incognito", args.incognito, is_bool=True)
+    add_if_not_none("block_images", args.block_images, is_bool=True)
+    add_if_not_none("ad_block", args.ad_block, is_bool=True)
+    add_if_not_none("xvfb", args.xvfb, is_bool=True)
+
+    print(f"Active Settings: {sb_settings}")
 
     with SB(**sb_settings) as sb:
-        print(f"Target URL: {args.url}")
-        
-        # Open URL with CDP Mode
         sb.activate_cdp_mode(args.url)
         sb.sleep(10)
-
         html = sb.get_page_source()
         
         print("-" * 30)
+        print(f"URL: {args.url} | Content Length: {len(html)}")
         if "ipify" in args.url:
-            # Clean output for IP check
-            print(f"Detected IP: {sb.get_text('body')}")
-        else:
-            print(f"HTML Length: {len(html)}")
-            print(f"Snippet: {html[0:1000]}")
+            print(f"IP: {sb.get_text('body')}")
         print("-" * 30)
 
 if __name__ == "__main__":
