@@ -2,16 +2,20 @@ name: Selenium Scraper (Advanced)
 on:
   workflow_dispatch:
     inputs:
+      target_url:
+        description: 'URL to scrape'
+        required: true
+        default: 'https://api.ipify.org/'
       proxy:
-        description: 'Proxy URL (e.g. http://ip:port). Leave empty for none.'
+        description: 'Proxy (http://ip:port). Leave empty for none.'
         required: false
         default: ''
       headless:
-        description: 'Run in Headless Mode'
+        description: 'Run Headless'
         type: boolean
         default: false
       incognito:
-        description: 'Run in Incognito'
+        description: 'Incognito Mode'
         type: boolean
         default: true
       block_images:
@@ -52,13 +56,13 @@ jobs:
 
       - name: Run Scraper
         run: |
-          # Construct the command based on inputs
-          COMMAND="python selenium.py --xvfb"
-          if [ "${{ github.event.inputs.proxy }}" != "" ]; then COMMAND="$COMMAND --proxy ${{ github.event.inputs.proxy }}"; fi
-          if [ "${{ github.event.inputs.headless }}" == "true" ]; then COMMAND="$COMMAND --headless"; fi
-          if [ "${{ github.event.inputs.incognito }}" == "true" ]; then COMMAND="$COMMAND --incognito"; fi
-          if [ "${{ github.event.inputs.block_images }}" == "true" ]; then COMMAND="$COMMAND --block-images"; fi
-          if [ "${{ github.event.inputs.ad_block }}" == "true" ]; then COMMAND="$COMMAND --ad-block"; fi
+          # Build command with inputs
+          CMD="python selenium.py --xvfb --url '${{ github.event.inputs.target_url }}'"
           
-          # Execute
-          $COMMAND
+          if [ "${{ github.event.inputs.proxy }}" != "" ]; then CMD="$CMD --proxy ${{ github.event.inputs.proxy }}"; fi
+          if [ "${{ github.event.inputs.headless }}" == "true" ]; then CMD="$CMD --headless"; fi
+          if [ "${{ github.event.inputs.incognito }}" == "true" ]; then CMD="$CMD --incognito"; fi
+          if [ "${{ github.event.inputs.block_images }}" == "true" ]; then CMD="$CMD --block-images"; fi
+          if [ "${{ github.event.inputs.ad_block }}" == "true" ]; then CMD="$CMD --ad-block"; fi
+          
+          eval $CMD
