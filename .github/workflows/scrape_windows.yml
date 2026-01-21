@@ -1,0 +1,43 @@
+name: Scraper (Windows Imitation)
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'URL to scrape'
+        required: true
+        default: 'https://api.ipify.org/'
+      proxy:
+        description: 'Proxy'
+        required: false
+        default: ''
+
+jobs:
+  scrape:
+    runs-on: windows-latest  # <--- HUGE CHANGE: Uses Windows Server
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install seleniumbase
+          seleniumbase install chromedriver
+          # No need for sudo apt-get or xvfb on Windows
+
+      - name: Run Scraper
+        shell: bash # Use bash explicitly so your script logic works on Windows
+        run: |
+          CMD="python scrape_windows.py --url '${{ github.event.inputs.target_url }}'"
+          
+          if [ "${{ github.event.inputs.proxy }}" != "" ]; then 
+            CMD="$CMD --proxy ${{ github.event.inputs.proxy }}"
+          fi
+          
+          # Force Headless=False helps on Windows Runners (Github allows GUI sessions)
+          CMD="$CMD --headless false" 
+          
+          eval $CMD
