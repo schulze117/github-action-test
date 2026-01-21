@@ -1,12 +1,13 @@
 from seleniumbase import SB
 
 with SB(uc=True, 
-        proxy="http://34.159.220.116:8888", 
+        proxy="http://34.107.127.238:8888", 
         # xvfb=True,
         headless=False,
         # locale="de", 
         incognito=True, 
         block_images=True,
+        ad_block=True,
         ) as sb:
 
     # url = "https://api.ipify.org/"
