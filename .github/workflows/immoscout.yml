@@ -1,4 +1,4 @@
-name: Immowelt Scraper (Advanced)
+name: Immoscout Scraper (Advanced)
 on: workflow_dispatch
 
 jobs:
