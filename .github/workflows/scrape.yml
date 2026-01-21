@@ -1,4 +1,4 @@
-name: Selenium Scraper (Advanced)
+name: Scraper (Advanced)
 on:
   workflow_dispatch:
     inputs:
@@ -52,7 +52,7 @@ jobs:
       - name: Run Scraper
         run: |
           # Start with mandatory flags
-          CMD="python selenium.py --xvfb True --url '${{ github.event.inputs.target_url }}'"
+          CMD="python scrape.py --xvfb True --url '${{ github.event.inputs.target_url }}'"
           
           # Only append flags if they are NOT set to 'default'
           if [ "${{ github.event.inputs.proxy }}" != "" ]; then 
