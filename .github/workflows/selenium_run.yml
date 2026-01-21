@@ -1,32 +1,40 @@
-name: Run Selenium Scraper (Windows)
-on: 
-  workflow_dispatch: # Manual trigger
+name: Immowelt Scraper (Advanced)
+on: workflow_dispatch
 
 jobs:
   scrape:
-    env:
-      PY_COLORS: "1"
-    runs-on: windows-latest  # <--- CHANGED TO WINDOWS
-
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
+      # 1. MATCH OS LOCALE TO BROWSER LOCALE (German)
+      - name: Set Locale to German
+        run: |
+          sudo apt-get install tzdata locales -y && sudo locale-gen de_DE.UTF-8
+          sudo localectl set-locale LANG="de_DE.UTF-8"
+          export LANG="de_DE.UTF-8"
+          sudo update-locale
+
+      # 2. INSTALL GUI LIBS & SELENIUMBASE
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade wheel
-          pip install seleniumbase
+          pip install --upgrade pip wheel
+          pip install seleniumbase pyautogui python-xlib
+          sudo apt-get install -y google-chrome-stable
 
-      - name: Install chromedriver
+      # 3. INSTALL BOTH DRIVERS
+      - name: Install drivers
         run: |
           seleniumbase install chromedriver
+          seleniumbase install uc_driver
 
+      # 4. RUN WITH XVFB (Virtual Monitor)
       - name: Run Scraper
-        # No 'xvfb' needed on Windows. Just run python.
-        run: python scrape_test.py
+        run: |
+          sudo apt-get install -y xvfb
+          xvfb-run python scrape_test.py
