@@ -1,0 +1,40 @@
+name: Immowelt Scraper (Advanced)
+on: workflow_dispatch
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      # 1. MATCH OS LOCALE TO BROWSER LOCALE (German)
+      - name: Set Locale to German
+        run: |
+          sudo apt-get install tzdata locales -y && sudo locale-gen de_DE.UTF-8
+          sudo localectl set-locale LANG="de_DE.UTF-8"
+          export LANG="de_DE.UTF-8"
+          sudo update-locale
+
+      # 2. INSTALL GUI LIBS & SELENIUMBASE
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip wheel
+          pip install seleniumbase pyautogui python-xlib
+          sudo apt-get install -y google-chrome-stable
+          sudo apt-get install -y xvfb
+
+      # 3. INSTALL BOTH DRIVERS
+      - name: Install drivers
+        run: |
+          seleniumbase install chromedriver
+          seleniumbase install uc_driver
+
+      # 4. RUN WITH XVFB (Virtual Monitor)
+      - name: Run Scraper
+        run: |
+          python immowelt.py
