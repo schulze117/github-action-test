@@ -6,14 +6,11 @@ on:
       target_url:
         description: 'URL to scrape'
         required: true
-        default: 'https://nowsecure.nl' # A good site to test bot detection
+        default: 'https://api.ipify.org/' 
       proxy_string:
-        description: 'Proxy (user:pass@ip:port) - Highly Recommended'
+        description: 'Proxy (ip:port or user:pass@ip:port)'
         required: false
         default: ''
-  schedule:
-    # Run at 2:30 AM UTC daily
-    - cron: "30 2 * * *"
 
 jobs:
   stealth-run:
@@ -30,53 +27,44 @@ jobs:
         with:
           python-version: "3.10"
 
-      # 1. Install System Dependencies (Chrome + XVFB)
-      # We install google-chrome-stable and xvfb manually to ensure they are present.
       - name: Install System Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable xvfb
-          # clean up
           sudo apt-get clean
 
-      # 2. Install Python Dependencies
-      # pyautogui and python-xlib are crucial for simulating mouse movements in XVFB
       - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install seleniumbase pyautogui python-xlib
 
-      # 3. Install ChromeDriver
-      # Ensures the driver matches the installed Chrome version
       - name: Install SeleniumBase Driver
         run: |
           seleniumbase install chromedriver
 
-      # 4. Run the Scraper
-      # - We pass --xvfb="true" to use virtual display
-      # - We pass --headless="false" (Explicitly NOT headless)
-      # - We pass --incognito="true" for a clean session
       - name: Run Scraper Script
         run: |
-          PROXY_ARG=""
-          if [ -n "${{ inputs.proxy_string }}" ]; then
-            PROXY_ARG="--proxy \"${{ inputs.proxy_string }}\""
+          # 1. Start building the arguments string
+          ARGS="--url ${{ inputs.target_url }} --headless false --xvfb true --incognito true --block-images true"
+          
+          # 2. Handle Proxy Input Safely
+          RAW_PROXY="${{ inputs.proxy_string }}"
+          
+          if [ -n "$RAW_PROXY" ]; then
+            # Clean the proxy: 
+            # - Remove 'http://' and 'https://' prefixes
+            # - Remove double quotes (") and single quotes (')
+            CLEAN_PROXY=$(echo "$RAW_PROXY" | sed 's|http://||g' | sed 's|https://||g' | tr -d '"' | tr -d "'")
+            
+            # Append to arguments without adding extra quotes
+            ARGS="$ARGS --proxy $CLEAN_PROXY"
           fi
 
-          # If triggered by schedule, use a default URL, otherwise use input
-          TARGET="${{ inputs.target_url }}"
-          if [ -z "$TARGET" ]; then TARGET="https://api.ipify.org/"; fi
+          echo "Running with arguments: $ARGS"
+          
+          # 3. Run Python (Variable expansion happens here, no quotes around $ARGS)
+          python scrape.py $ARGS
 
-          python scrape.py \
-            --url "$TARGET" \
-            $PROXY_ARG \
-            --headless "false" \
-            --xvfb "true" \
-            --incognito "true" \
-            --block-images "true"
-
-      # 5. Upload Screenshots (Debugging)
-      # If the script fails or takes screenshots, this saves them to the GitHub UI
       - name: Upload Artifacts (Screenshots/Logs)
         if: always()
         uses: actions/upload-artifact@v6
