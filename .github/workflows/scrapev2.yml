@@ -1,0 +1,87 @@
+name: Stealth Scraper (XVFB + UC)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'URL to scrape'
+        required: true
+        default: 'https://nowsecure.nl' # A good site to test bot detection
+      proxy_string:
+        description: 'Proxy (user:pass@ip:port) - Highly Recommended'
+        required: false
+        default: ''
+  schedule:
+    # Run at 2:30 AM UTC daily
+    - cron: "30 2 * * *"
+
+jobs:
+  stealth-run:
+    runs-on: ubuntu-latest
+    env:
+      PY_COLORS: "1"
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+
+      # 1. Install System Dependencies (Chrome + XVFB)
+      # We install google-chrome-stable and xvfb manually to ensure they are present.
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable xvfb
+          # clean up
+          sudo apt-get clean
+
+      # 2. Install Python Dependencies
+      # pyautogui and python-xlib are crucial for simulating mouse movements in XVFB
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install seleniumbase pyautogui python-xlib
+
+      # 3. Install ChromeDriver
+      # Ensures the driver matches the installed Chrome version
+      - name: Install SeleniumBase Driver
+        run: |
+          seleniumbase install chromedriver
+
+      # 4. Run the Scraper
+      # - We pass --xvfb="true" to use virtual display
+      # - We pass --headless="false" (Explicitly NOT headless)
+      # - We pass --incognito="true" for a clean session
+      - name: Run Scraper Script
+        run: |
+          PROXY_ARG=""
+          if [ -n "${{ inputs.proxy_string }}" ]; then
+            PROXY_ARG="--proxy \"${{ inputs.proxy_string }}\""
+          fi
+
+          # If triggered by schedule, use a default URL, otherwise use input
+          TARGET="${{ inputs.target_url }}"
+          if [ -z "$TARGET" ]; then TARGET="https://api.ipify.org/"; fi
+
+          python scrape.py \
+            --url "$TARGET" \
+            $PROXY_ARG \
+            --headless "false" \
+            --xvfb "true" \
+            --incognito "true" \
+            --block-images "true"
+
+      # 5. Upload Screenshots (Debugging)
+      # If the script fails or takes screenshots, this saves them to the GitHub UI
+      - name: Upload Artifacts (Screenshots/Logs)
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: debug-screenshots
+          path: |
+            *.png
+            latest_logs/
